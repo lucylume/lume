@@ -25,16 +25,16 @@ let whisperModel = null;
 // Initialiser Whisper FRANÇAIS MEDIUM
 async function initWhisper() {
     try {
-        console.log('🇫🇷 Initialisation Whisper français medium...');
+        console.log('🇫🇷 Initialisation Whisper français tiny (optimisé Railway)...');
         whisperModel = await pipeline(
             'automatic-speech-recognition',
-            'Xenova/whisper-small',
+            'Xenova/whisper-tiny',
             { 
-                quantized: false,
+                quantized: true,
                 device: 'cpu'
             }
         );
-        console.log('✅ Whisper français medium initialisé !');
+        console.log('✅ Whisper français tiny initialisé (optimisé RAM) !');
     } catch (error) {
         console.error('❌ Erreur Whisper:', error);
         whisperModel = null;
@@ -259,8 +259,8 @@ async function start() {
     await initWhisper();
     
     app.listen(PORT, () => {
-        console.log(`🚀 TikTok Auto Creator SIMPLE sur http://localhost:${PORT}`);
-        console.log('🇫🇷 Whisper français medium activé');
+        console.log(`🚀 Lume - TikTok Creator sur port ${PORT}`);
+        console.log('🇫🇷 Whisper français tiny activé (Railway optimisé)');
     });
 }
 
