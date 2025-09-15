@@ -240,9 +240,9 @@ app.post('/api/convert', async (req, res) => {
 // Servir les fichiers
 app.use('/output', express.static(CONFIG.OUTPUT_DIR));
 
-// Page ultra-simple  
+// Page principale  
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'ultra-simple.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 function formatSRTTime(seconds) {
