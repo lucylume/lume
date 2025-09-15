@@ -1,5 +1,3 @@
-const ytdl = require('@distube/ytdl-core');
-
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,40 +14,34 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { url, duration = 30 } = req.body;
+    const { url } = req.body;
     
     if (!url) {
       return res.status(400).json({ success: false, error: 'URL manquante' });
     }
 
-    console.log('🎬 Conversion request:', url);
-
-    // Extract video ID without ytdl to avoid bot detection
+    // Extract video ID from URL
     const videoId = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)?.[1];
     
     if (!videoId) {
       return res.status(400).json({ success: false, error: 'URL YouTube invalide' });
     }
-    
-    // For now, return mock success response
-    // Real video processing would need different architecture for Vercel
+
+    // Return basic info without ytdl (to avoid bot detection)
     const result = {
       success: true,
-      downloadUrl: `https://example.com/mock-video-${videoId}.mp4`,
-      transcription: "Transcription simulée pour test Vercel - Votre vidéo TikTok sera générée ici avec les sous-titres français synchronisés.",
-      videoTitle: `Vidéo YouTube ${videoId}`,
-      duration: duration,
-      segment: `0.0s-${duration}.0s`
+      title: "Vidéo YouTube",
+      channel: "Chaîne YouTube",
+      videoId: videoId
     };
 
-    console.log('✅ Mock conversion completed');
     res.status(200).json(result);
 
   } catch (error) {
-    console.error('❌ Conversion error:', error);
+    console.error('Video info error:', error);
     res.status(500).json({ 
       success: false, 
-      error: `Erreur de conversion: ${error.message}` 
+      error: error.message 
     });
   }
 }
