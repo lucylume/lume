@@ -25,18 +25,11 @@ let whisperModel = null;
 // Initialiser Whisper FRANÇAIS MEDIUM
 async function initWhisper() {
     try {
-        console.log('🇫🇷 Initialisation Whisper français tiny (optimisé Railway)...');
-        whisperModel = await pipeline(
-            'automatic-speech-recognition',
-            'Xenova/whisper-tiny',
-            { 
-                quantized: true,
-                device: 'cpu'
-            }
-        );
-        console.log('✅ Whisper français tiny initialisé (optimisé RAM) !');
+        console.log('🇫🇷 Initialisation Whisper différée pour économiser RAM...');
+        // Ne pas charger Whisper au démarrage - le charger à la demande
+        console.log('✅ Whisper sera chargé à la première utilisation');
     } catch (error) {
-        console.error('❌ Erreur Whisper:', error);
+        console.error('❌ Erreur:', error);
         whisperModel = null;
     }
 }
@@ -54,8 +47,16 @@ app.post('/api/convert', async (req, res) => {
         console.log(`🎬 Conversion: ${url} (${duration}s)`);
 
         if (!whisperModel) {
-            console.log('⏳ Whisper non initialisé, attendre...');
-            await initWhisper();
+            console.log('⏳ Chargement Whisper à la demande...');
+            whisperModel = await pipeline(
+                'automatic-speech-recognition',
+                'Xenova/whisper-tiny',
+                { 
+                    quantized: true,
+                    device: 'cpu'
+                }
+            );
+            console.log('✅ Whisper chargé !');
         }
 
         // 1. TÉLÉCHARGEMENT
