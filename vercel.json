@@ -1,13 +1,13 @@
 {
   "functions": {
-    "lume_server.js": {
+    "api/lume_server.js": {
       "maxDuration": 60
     }
   },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/lume_server.js"
+      "destination": "/api/lume_server.js"
     },
     {
       "source": "/(.*)",
