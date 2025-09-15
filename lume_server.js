@@ -8,7 +8,7 @@ const { pipeline } = require('@xenova/transformers');
 const wav = require('node-wav');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8080;
 
 app.use(cors());
 app.use(express.json());
@@ -259,9 +259,10 @@ async function start() {
     await initDirs();
     await initWhisper();
     
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 Lume - TikTok Creator sur port ${PORT}`);
         console.log('🇫🇷 Whisper français tiny activé (Railway optimisé)');
+        console.log(`📡 Serveur accessible sur 0.0.0.0:${PORT}`);
     });
 }
 
