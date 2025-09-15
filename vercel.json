@@ -1,17 +1,7 @@
 {
   "functions": {
-    "api/lume_server.js": {
+    "api/convert.js": {
       "maxDuration": 60
     }
-  },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/lume_server.js"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+  }
 }
