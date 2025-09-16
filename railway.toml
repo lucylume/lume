@@ -1,0 +1,17 @@
+[build]
+nixpacks = true
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[build.nixPacks.phases.setup]
+aptPkgs = ["ffmpeg"]
+
+[build.nixPacks.phases.install]
+dependsOn = ["setup"]
+
+[build.nixPacks.phases.build]
+dependsOn = ["install"]

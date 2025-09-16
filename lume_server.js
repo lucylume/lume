@@ -325,6 +325,16 @@ app.post('/api/convert', async (req, res) => {
 // Servir les fichiers
 app.use('/output', express.static(CONFIG.OUTPUT_DIR));
 
+// Health check pour Railway
+app.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        memory: process.memoryUsage()
+    });
+});
+
 // Page principale  
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
@@ -338,16 +348,54 @@ function formatSRTTime(seconds) {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')},${ms.toString().padStart(3, '0')}`;
 }
 
+// Gestion des signaux pour Railway
+process.on('SIGTERM', () => {
+    console.log('🛑 SIGTERM reçu - Arrêt propre...');
+    process.exit(0);
+});
+
+process.on('SIGINT', () => {
+    console.log('🛑 SIGINT reçu - Arrêt propre...');
+    process.exit(0);
+});
+
+// Gestion des erreurs non capturées
+process.on('uncaughtException', (error) => {
+    console.error('❌ Erreur non capturée:', error);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ Promise rejetée non gérée:', reason);
+    process.exit(1);
+});
+
 // Démarrage
 async function start() {
-    await initDirs();
-    await initWhisper();
-    
-    app.listen(PORT, '0.0.0.0', () => {
-        console.log(`🚀 Lume - TikTok Creator sur port ${PORT}`);
-        console.log('🇫🇷 Whisper français tiny activé (Railway optimisé)');
-        console.log(`📡 Serveur accessible sur 0.0.0.0:${PORT}`);
-    });
+    try {
+        await initDirs();
+        await initWhisper();
+        
+        const server = app.listen(PORT, '0.0.0.0', () => {
+            console.log(`🚀 Lume - TikTok Creator sur port ${PORT}`);
+            console.log('🇫🇷 Whisper français tiny activé (Railway optimisé)');
+            console.log(`📡 Serveur accessible sur 0.0.0.0:${PORT}`);
+            console.log(`🔗 Health check: http://0.0.0.0:${PORT}/health`);
+        });
+
+        // Gérer l'arrêt propre
+        process.on('SIGTERM', () => {
+            console.log('🛑 Fermeture du serveur...');
+            server.close(() => {
+                console.log('✅ Serveur fermé proprement');
+                process.exit(0);
+            });
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur au démarrage:', error);
+        process.exit(1);
+    }
 }
 
-start().catch(console.error);
+start();
