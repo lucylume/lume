@@ -4,6 +4,16 @@ const path = require('path');
 const fs = require('fs').promises;
 const ffmpeg = require('fluent-ffmpeg');
 const ytdl = require('@distube/ytdl-core');
+
+// Configuration FFmpeg pour Railway
+const ffmpegPath = require('fluent-ffmpeg');
+try {
+    ffmpegPath.setFfmpegPath('/usr/bin/ffmpeg');
+    ffmpegPath.setFfprobePath('/usr/bin/ffprobe');
+    console.log('✅ FFmpeg configuré pour Railway');
+} catch (error) {
+    console.log('⚠️ FFmpeg path non défini, utilisation par défaut');
+}
 const { pipeline } = require('@xenova/transformers');
 const wav = require('node-wav');
 
@@ -59,22 +69,42 @@ app.post('/api/convert', async (req, res) => {
             console.log('✅ Whisper chargé !');
         }
 
-        // 1. TÉLÉCHARGEMENT
+        // 1. TÉLÉCHARGEMENT avec gestion d'erreur améliorée
         console.log('📥 Téléchargement...');
-        const info = await ytdl.getInfo(url);
-        const videoId = ytdl.getVideoID(url);
-        const filename = `${videoId}_${Date.now()}`;
-        const videoPath = path.join(CONFIG.TEMP_DIR, `${filename}.mp4`);
+        let info, videoId, filename, videoPath;
         
-        const stream = ytdl(url, { quality: 'highest', filter: 'videoandaudio' });
-        const writeStream = require('fs').createWriteStream(videoPath);
-        stream.pipe(writeStream);
-        
-        await new Promise((resolve, reject) => {
-            writeStream.on('finish', resolve);
-            writeStream.on('error', reject);
-        });
-        console.log('✅ Téléchargement terminé');
+        try {
+            info = await ytdl.getInfo(url);
+            videoId = ytdl.getVideoID(url);
+            filename = `${videoId}_${Date.now()}`;
+            videoPath = path.join(CONFIG.TEMP_DIR, `${filename}.mp4`);
+            
+            console.log(`🎬 Vidéo: ${info.videoDetails.title}`);
+            console.log(`⏱️ Durée: ${info.videoDetails.lengthSeconds}s`);
+            
+            const stream = ytdl(url, { 
+                quality: 'highest', 
+                filter: 'videoandaudio',
+                requestOptions: {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    }
+                }
+            });
+            
+            const writeStream = require('fs').createWriteStream(videoPath);
+            stream.pipe(writeStream);
+            
+            await new Promise((resolve, reject) => {
+                writeStream.on('finish', resolve);
+                writeStream.on('error', reject);
+                stream.on('error', reject);
+            });
+            console.log('✅ Téléchargement terminé');
+        } catch (error) {
+            console.error('❌ Erreur téléchargement:', error.message);
+            throw new Error(`Échec téléchargement: ${error.message}`);
+        }
 
         // 2. SEGMENT ALÉATOIRE
         const totalDuration = parseInt(info.videoDetails.lengthSeconds);
