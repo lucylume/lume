@@ -52,9 +52,25 @@ async function initDirs() {
 
 // API UNIQUE QUI FAIT TOUT
 app.post('/api/convert', async (req, res) => {
+    const timeout = setTimeout(() => {
+        res.status(408).json({
+            success: false,
+            error: 'Timeout - Opération trop longue (limite 5 minutes)'
+        });
+    }, 5 * 60 * 1000); // 5 minutes timeout
+
     try {
         const { url, duration = 30 } = req.body;
         console.log(`🎬 Conversion: ${url} (${duration}s)`);
+
+        // Vérifier URL YouTube
+        if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+            clearTimeout(timeout);
+            return res.status(400).json({
+                success: false,
+                error: 'URL YouTube valide requise'
+            });
+        }
 
         if (!whisperModel) {
             console.log('⏳ Chargement Whisper à la demande...');
@@ -74,7 +90,10 @@ app.post('/api/convert', async (req, res) => {
         let info, videoId, filename, videoPath;
         
         try {
+            console.log('🔍 Test accès YouTube...');
             info = await ytdl.getInfo(url);
+            console.log('✅ Accès YouTube OK');
+            
             videoId = ytdl.getVideoID(url);
             filename = `${videoId}_${Date.now()}`;
             videoPath = path.join(CONFIG.TEMP_DIR, `${filename}.mp4`);
@@ -82,12 +101,33 @@ app.post('/api/convert', async (req, res) => {
             console.log(`🎬 Vidéo: ${info.videoDetails.title}`);
             console.log(`⏱️ Durée: ${info.videoDetails.lengthSeconds}s`);
             
+            console.log('🔍 Test FFmpeg disponible...');
+            const { spawn } = require('child_process');
+            const ffmpegTest = spawn('ffmpeg', ['-version']);
+            
+            await new Promise((resolve, reject) => {
+                ffmpegTest.on('close', (code) => {
+                    if (code === 0) {
+                        console.log('✅ FFmpeg disponible');
+                        resolve();
+                    } else {
+                        console.log('❌ FFmpeg non disponible');
+                        reject(new Error('FFmpeg non trouvé'));
+                    }
+                });
+                ffmpegTest.on('error', () => {
+                    console.log('❌ FFmpeg erreur');
+                    reject(new Error('FFmpeg erreur'));
+                });
+            });
+            
+            console.log('📥 Début téléchargement...');
             const stream = ytdl(url, { 
-                quality: 'highest', 
+                quality: 'lowest', // Commencer par la plus basse qualité
                 filter: 'videoandaudio',
                 requestOptions: {
                     headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
                     }
                 }
             });
@@ -102,8 +142,8 @@ app.post('/api/convert', async (req, res) => {
             });
             console.log('✅ Téléchargement terminé');
         } catch (error) {
-            console.error('❌ Erreur téléchargement:', error.message);
-            throw new Error(`Échec téléchargement: ${error.message}`);
+            console.error('❌ Erreur détaillée:', error);
+            throw new Error(`Échec: ${error.message}`);
         }
 
         // 2. SEGMENT ALÉATOIRE
@@ -250,6 +290,7 @@ app.post('/api/convert', async (req, res) => {
         await fs.unlink(srtPath).catch(() => {});
 
         console.log('🎉 TikTok généré avec succès !');
+        clearTimeout(timeout);
         res.json({
             success: true,
             downloadUrl: `/output/tiktok_${filename}.mp4`,
@@ -260,10 +301,23 @@ app.post('/api/convert', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Erreur:', error);
+        console.error('❌ Erreur complète:', error);
+        clearTimeout(timeout);
+        
+        // Réponse d'erreur détaillée
+        let errorMessage = error.message;
+        if (error.message.includes('ytdl')) {
+            errorMessage = 'YouTube bloque l\'accès - Essayez une autre vidéo';
+        } else if (error.message.includes('ffmpeg')) {
+            errorMessage = 'Problème de traitement vidéo - Service indisponible';
+        } else if (error.message.includes('ENOENT')) {
+            errorMessage = 'Fichier introuvable - Erreur serveur';
+        }
+        
         res.status(500).json({ 
             success: false,
-            error: error.message 
+            error: errorMessage,
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 });
