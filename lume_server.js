@@ -91,7 +91,15 @@ app.post('/api/convert', async (req, res) => {
         
         try {
             console.log('🔍 Test accès YouTube...');
-            info = await ytdl.getInfo(url);
+            info = await ytdl.getInfo(url, {
+                requestOptions: {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                        'Accept-Language': 'en-US,en;q=0.5',
+                    }
+                }
+            });
             console.log('✅ Accès YouTube OK');
             
             videoId = ytdl.getVideoID(url);
@@ -123,11 +131,16 @@ app.post('/api/convert', async (req, res) => {
             
             console.log('📥 Début téléchargement...');
             const stream = ytdl(url, { 
-                quality: 'lowest', // Commencer par la plus basse qualité
+                quality: 'lowest',
                 filter: 'videoandaudio',
                 requestOptions: {
                     headers: {
-                        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                        'Accept-Language': 'en-US,en;q=0.5',
+                        'Accept-Encoding': 'gzip, deflate',
+                        'Connection': 'keep-alive',
+                        'Upgrade-Insecure-Requests': '1',
                     }
                 }
             });
@@ -333,6 +346,11 @@ app.get('/health', (req, res) => {
         uptime: process.uptime(),
         memory: process.memoryUsage()
     });
+});
+
+// Favicon
+app.get('/favicon.ico', (req, res) => {
+    res.status(204).end();
 });
 
 // Page principale  
