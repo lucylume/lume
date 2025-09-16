@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lume - TikTok Creator</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --accent: #ff6b6b;
+            --border: #333333;
+            --success: #4ade80;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent), #ff8e8e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background: #ff5252;
+        }
+
+        .btn:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+        }
+
+        .success {
+            border-left: 4px solid var(--success);
+        }
+
+        .error {
+            border-left: 4px solid var(--error);
+        }
+
+        .video-preview {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .video-preview video {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            background: #000;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: var(--success);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 16px;
+        }
+
+        .download-btn:hover {
+            background: #22c55e;
+        }
+
+        .auth-section {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .auth-btn {
+            background: #4285f4;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="logo">LUME</h1>
+            <p class="subtitle">Transformez vos vidéos YouTube en TikToks avec IA française</p>
+        </div>
+
+        <div id="auth-section" class="auth-section">
+            <div id="login-section">
+                <h3>Connexion requise</h3>
+                <p>Connectez-vous pour créer vos TikToks</p>
+                <button id="login-btn" class="auth-btn">Se connecter avec Google</button>
+            </div>
+            <div id="user-section" style="display: none;">
+                <div class="user-info">
+                    <img id="user-avatar" class="user-avatar" src="" alt="Avatar">
+                    <span id="user-name"></span>
+                    <button id="logout-btn" class="auth-btn" style="background: var(--error); margin-left: 20px;">Déconnexion</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="main-form" style="display: none;">
+            <form id="convert-form">
+                <div class="form-group">
+                    <label for="youtube-url">URL YouTube</label>
+                    <input type="url" id="youtube-url" class="input-field" placeholder="https://www.youtube.com/watch?v=..." required>
+                </div>
+                <div class="form-group">
+                    <label for="duration">Durée (secondes)</label>
+                    <input type="number" id="duration" class="input-field" value="30" min="10" max="60">
+                </div>
+                <button type="submit" class="btn" id="convert-btn">Créer TikTok</button>
+            </form>
+
+            <div id="loading" class="loading">
+                <h3>Création en cours...</h3>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+                <p id="progress-text">Initialisation...</p>
+            </div>
+
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Configuration Supabase
+        const supabaseUrl = 'https://hhimppegplqamapjtnod.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoaW1wcGVncGxxYW1hcGp0bm9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY2ODUzOTcsImV4cCI6MjA1MjI2MTM5N30.6BdQSsRxWY5JfkWQb2xpI31EBNqLqzU1dK3FmbwQNgo';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        const authSection = document.getElementById('auth-section');
+        const loginSection = document.getElementById('login-section');
+        const userSection = document.getElementById('user-section');
+        const mainForm = document.getElementById('main-form');
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userAvatar = document.getElementById('user-avatar');
+        const userName = document.getElementById('user-name');
+
+        // Vérifier l'état de connexion
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (session) {
+                showUserSection(session.user);
+            } else {
+                showLoginSection();
+            }
+        }
+
+        function showLoginSection() {
+            loginSection.style.display = 'block';
+            userSection.style.display = 'none';
+            mainForm.style.display = 'none';
+        }
+
+        function showUserSection(user) {
+            loginSection.style.display = 'none';
+            userSection.style.display = 'block';
+            mainForm.style.display = 'block';
+            
+            userAvatar.src = user.user_metadata.avatar_url || '';
+            userName.textContent = user.user_metadata.full_name || user.email;
+        }
+
+        // Connexion Google
+        loginBtn.addEventListener('click', async () => {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin
+                }
+            });
+            
+            if (error) {
+                console.error('Erreur de connexion:', error);
+            }
+        });
+
+        // Déconnexion
+        logoutBtn.addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            showLoginSection();
+        });
+
+        // Écouter les changements d'authentification
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                showUserSection(session.user);
+            } else if (event === 'SIGNED_OUT') {
+                showLoginSection();
+            }
+        });
+
+        // Formulaire de conversion
+        const convertForm = document.getElementById('convert-form');
+        const loading = document.getElementById('loading');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        const result = document.getElementById('result');
+
+        convertForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const url = document.getElementById('youtube-url').value;
+            const duration = document.getElementById('duration').value;
+            
+            // Afficher le chargement
+            loading.classList.add('show');
+            result.innerHTML = '';
+            
+            // Simulation du progrès
+            const steps = [
+                'Téléchargement de la vidéo...',
+                'Extraction audio...',
+                'Transcription IA...',
+                'Création des sous-titres...',
+                'Rendu final...'
+            ];
+            
+            let currentStep = 0;
+            const progressInterval = setInterval(() => {
+                if (currentStep < steps.length) {
+                    progressText.textContent = steps[currentStep];
+                    progressFill.style.width = `${((currentStep + 1) / steps.length) * 100}%`;
+                    currentStep++;
+                } else {
+                    clearInterval(progressInterval);
+                }
+            }, 2000);
+            
+            try {
+                const response = await fetch('/api/convert', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url, duration: parseInt(duration) })
+                });
+                
+                const resultData = await response.json();
+                
+                clearInterval(progressInterval);
+                loading.classList.remove('show');
+                
+                if (resultData.success) {
+                    result.innerHTML = `
+                        <div class="result success">
+                            <h3>✅ TikTok créé avec succès!</h3>
+                            <p><strong>Vidéo:</strong> ${resultData.videoTitle}</p>
+                            <p><strong>Segment:</strong> ${resultData.segment}</p>
+                            <p><strong>Transcription:</strong> "${resultData.transcription}"</p>
+                            
+                            <div class="video-preview">
+                                <video controls preload="metadata">
+                                    <source src="${resultData.downloadUrl}" type="video/mp4">
+                                    Votre navigateur ne supporte pas la lecture vidéo.
+                                </video>
+                            </div>
+                            
+                            <a href="${resultData.downloadUrl}" download class="download-btn">
+                                📥 Télécharger la vidéo TikTok
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div class="result error">
+                            <h3>❌ Erreur</h3>
+                            <p>${resultData.error}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                clearInterval(progressInterval);
+                loading.classList.remove('show');
+                result.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Erreur de connexion</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+
+        // Initialiser l'authentification
+        checkAuth();
+    </script>
+</body>
+</html>
