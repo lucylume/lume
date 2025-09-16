@@ -2,9 +2,9 @@
   "name": "lume",
   "version": "1.0.0",
   "description": "✨ Lume - Transformez vos vidéos YouTube en TikToks avec IA française",
-  "main": "lume_server.js",
+  "main": "test_server.js",
   "scripts": {
-    "start": "node lume_server.js",
+    "start": "node test_server.js",
     "clean": "rm -rf node_modules temp/* output/*",
     "install-minimal": "npm install --no-optional --production"
   },
