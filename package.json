@@ -2,15 +2,19 @@
   "name": "lume",
   "version": "1.0.0",
   "description": "✨ Lume - Transformez vos vidéos YouTube en TikToks avec IA française",
-  "main": "test_server.js",
+  "main": "lume_server.js",
   "scripts": {
-    "start": "node test_server.js",
+    "start": "node lume_server.js",
     "clean": "rm -rf node_modules temp/* output/*",
     "install-minimal": "npm install --no-optional --production"
   },
   "dependencies": {
+    "@distube/ytdl-core": "^4.14.4",
+    "@xenova/transformers": "^2.17.2",
     "cors": "^2.8.5", 
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "fluent-ffmpeg": "^2.1.2",
+    "node-wav": "^0.0.2"
   },
   "keywords": ["lume", "tiktok", "youtube", "french", "ai", "whisper"],
   "author": "Lume AI",
