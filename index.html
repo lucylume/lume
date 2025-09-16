@@ -2238,7 +2238,8 @@ async function loadYouTubePreview(url) {
       
       // Try to get video info from API (this will use the server's ytdl info)
       try {
-        const response = await fetch('/api/video-info', {
+        // Removed video-info API call - info will come from convert endpoint
+        /*const response = await fetch('// REMOVED: /api/video-info', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url })
