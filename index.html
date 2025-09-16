@@ -1814,7 +1814,7 @@ async function convertVideo() {
   }
   
   // Check authentication for usage tracking
-  if (!currentUser) {
+  if (typeof currentUser === 'undefined' || !currentUser) {
     const guestUsage = parseInt(localStorage.getItem('guestUsage') || '0')
     if (guestUsage >= 1) {
       showToast('Connectez-vous pour continuer à utiliser le service', 'warning')
@@ -1840,7 +1840,7 @@ async function convertVideo() {
     await simulateConversionProcess(url);
 
     // Track successful generation
-    if (currentUser) {
+    if (currentUser && typeof currentUser !== 'undefined') {
       await trackGeneration(currentUser.id, url)
     }
     
@@ -1973,7 +1973,7 @@ function toggleUserMenu() {
 
 // Show profile section
 async function showProfile() {
-  if (!currentUser) {
+  if (typeof currentUser === 'undefined' || !currentUser) {
     signInWithGoogle()
     return
   }
@@ -2048,7 +2048,7 @@ async function convertVideoWithAuth() {
   }
   
   // Check authentication for usage tracking
-  if (!currentUser) {
+  if (typeof currentUser === 'undefined' || !currentUser) {
     const guestUsage = parseInt(localStorage.getItem('guestUsage') || '0')
     if (guestUsage >= 1) {
       showToast('Connectez-vous pour continuer à utiliser le service', 'warning')
@@ -2068,7 +2068,7 @@ async function convertVideoWithAuth() {
     await simulateConversionProcess(url)
     
     // Track successful generation
-    if (currentUser) {
+    if (currentUser && typeof currentUser !== 'undefined') {
       await trackGeneration(currentUser.id, url)
     }
     
@@ -2237,27 +2237,9 @@ async function loadYouTubePreview(url) {
       document.getElementById('previewThumbnail').src = thumbnail
       
       // Try to get video info from API (this will use the server's ytdl info)
-      try {
-        // Removed video-info API call - info will come from convert endpoint
-        /*const response = await fetch('// REMOVED: /api/video-info', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url })
-        })
-        
-        if (response.ok) {
-          const info = await response.json()
-          document.getElementById('previewTitle').textContent = info.title || 'Vidéo YouTube'
-          document.getElementById('previewChannel').textContent = info.channel || 'Chaîne YouTube'
-        } else {
-          // Fallback
-          document.getElementById('previewTitle').textContent = 'Vidéo YouTube'
-          document.getElementById('previewChannel').textContent = 'Chargement...'
-        }
-      } catch (e) {
-        document.getElementById('previewTitle').textContent = 'Vidéo YouTube'
-        document.getElementById('previewChannel').textContent = 'Prêt pour conversion'
-      }
+      // Set default preview info (real info will come during conversion)
+      document.getElementById('previewTitle').textContent = 'Vidéo YouTube'
+      document.getElementById('previewChannel').textContent = 'Chaîne YouTube'
       
       // Show preview
       document.getElementById('youtubePreview').style.display = 'flex'
